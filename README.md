@@ -22,7 +22,7 @@ The Azure_to_Netbox.py script discovers and synchronizes the following Azure res
 
 1. Clone this repository:
 ```bash
-git clone https://your-repository-url/Azure_to_netbox.git
+git clone https://github.com/sander110419/Netbox-Azure-Networks.git
 ```
 
 2. Install the required dependencies:
