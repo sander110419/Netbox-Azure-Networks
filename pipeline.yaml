@@ -1,0 +1,62 @@
+trigger: none # No CI trigger
+
+schedules:
+- cron: "0 * * * *" # Run every hour
+  displayName: Hourly Azure to Netbox Sync
+  branches:
+    include:
+    - master
+  always: true
+
+variables:
+- group: Azure-Netbox-Sync-Variables
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: main
+
+jobs:
+- job: SyncAzureToNetbox
+  displayName: 'Sync Azure to Netbox'
+  timeoutInMinutes: 30
+  
+  steps:
+  - checkout: self
+    fetchDepth: 1
+    
+  - task: Bash@3
+    displayName: 'Setup Python'
+    inputs:
+      targetType: 'inline'
+      script: |
+        # Install Python 3.9 using apt
+        apt-get update
+        apt-get install -y iputils-ping python3.9 python3.9-dev python3.9-venv python3-pip
+        
+        # Create and activate a virtual environment
+        python3.9 -m venv .venv
+        
+        # Verify Python version
+        .venv/bin/python --version
+    
+  - task: Bash@3
+    displayName: 'Install Dependencies'
+    inputs:
+      targetType: 'inline'
+      script: |
+        .venv/bin/python -m pip install --upgrade pip
+        .venv/bin/pip install pynetbox requests urllib3 azure-identity azure-mgmt-subscription azure-mgmt-network azure-mgmt-compute
+
+  - task: AzureCLI@2
+    displayName: 'Run Azure to Netbox Sync'
+    inputs:
+      azureSubscription: 'INSERTSUBSCRIPTIONNAME HERE'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        # Use the full path to the Python executable in the virtual environment
+        .venv/bin/python Azure_to_netbox/Azure_to_Netbox.py \
+          --netbox-url "$(NETBOX_URL)" \
+          --netbox-token "$(NETBOX_TOKEN)"
