@@ -197,7 +197,8 @@ def get_or_create_prefix(nb, prefix_value, defaults):
                     return prefix, False
             except Exception as inner_e:
                 logger.error(f"Error retrieving duplicate prefix {prefix_value}: {str(inner_e)}")
-        
+        if "This field may not be null" in str(e):
+		return None, False
         # Re-raise the original error if we couldn't handle it
         raise
 
